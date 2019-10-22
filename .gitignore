@@ -12,4 +12,3 @@ dist
 # eslint-cache
 .eslintcache
 .vscode
-package-lock.json

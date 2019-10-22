@@ -1,8 +1,8 @@
-const Quill = require('quill');
-require('quill/dist/quill.snow.css');
-const imageUpload = require('quill-plugin-image-upload');
+import Quill from 'quill';
+import 'quill/dist/quill.snow.css';
+import { ImageUploadModule } from 'quill-right-image-upload';
 
-Quill.register('modules/imageUpload', imageUpload);
+Quill.register('modules/imageUpload', ImageUploadModule);
 
 const MOCK_IMG_SRC = 'http://tva1.sinaimg.cn/crop.0.0.217.217.180/4c8b519djw8fa45br0vpxj2062062q33.jpg';
 const quill = new Quill('#editor', {
@@ -39,7 +39,7 @@ const quill = new Quill('#editor', {
         return new Promise((resolve, reject) => {
           setTimeout(() => {
             resolve(MOCK_IMG_SRC); // Must resolve as a link to the image
-          }, 1000);
+          }, 6000);
           // const fd = new FormData();
           // fd.append("upload_file", file);
 

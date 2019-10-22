@@ -1,11 +1,10 @@
 const path = require('path');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {
   entry: {
-    workboard: './src/index.js'
+    workboard: `${__dirname}/src/index.js`
   },
   output: {
     filename: 'index.[chunkhash].js',
@@ -13,12 +12,6 @@ module.exports = {
   },
   module: {
     rules: [
-      // {
-      //   enforce: "pre",
-      //   test: /\.js$/,
-      //   exclude: /node_modules/,
-      //   loader: "eslint-loader",
-      // },
       {
         test: /\.css$/,
         use: [
@@ -35,9 +28,6 @@ module.exports = {
       },
     ]
   },
-  devServer: {
-    contentBase: './dist'
-  },
   plugins: [
     new CleanWebpackPlugin(['dist']),
     new HtmlWebpackPlugin({
@@ -45,6 +35,5 @@ module.exports = {
       // chunks: ['workboard'],
       filename: 'index.html'
     }),
-    new UglifyJSPlugin()
   ]
 };
