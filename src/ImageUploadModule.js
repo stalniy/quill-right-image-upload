@@ -1,3 +1,8 @@
+function defaultHandleError(error) {
+  return Promise.reject(error);
+}
+const defaultInvalidFile = () => {};
+
 class ImageUploadModule {
   constructor(quill, options) {
     this.quill = quill;
@@ -8,47 +13,89 @@ class ImageUploadModule {
       throw new Error('[Missing config] upload function that returns a promise is required');
     }
 
+    if (this.options.accept && !Array.isArray(this.options.accept)) {
+      throw new Error('Expect "accept" to be an array of file formats');
+    }
+
     this.quill.getModule('toolbar')
       .addHandler('image', this.selectLocalImage.bind(this));
   }
 
   selectLocalImage() {
     this.range = this.quill.getSelection(true);
-    this.fileHolder = document.createElement('input');
-    this.fileHolder.setAttribute('type', 'file');
-    this.fileHolder.setAttribute('accept', this.options.accept || 'image/*');
-    this.fileHolder.onchange = () => this.selectFile(this.fileHolder.files[0]);
-    this.fileHolder.click();
+    const fileInput = document.createElement('input');
+    fileInput.setAttribute('type', 'file');
+    fileInput.setAttribute(
+      'accept',
+      this.options.accept ? this.options.accept.join(',') : 'image/*'
+    );
+    fileInput.onchange = () => this.selectFile(fileInput.files[0]);
+    fileInput.click();
+  }
+
+  validate(file) {
+    const { maxSize, accept } = this.options;
+
+    if (maxSize && file.size > maxSize) {
+      return false;
+    }
+
+    if (accept && !accept.includes(file.type)) {
+      return false;
+    }
+
+    return true;
   }
 
   selectFile(file) {
     if (!file) {
+      return null;
+    }
+
+    const isValid = this.validate(file);
+
+    if (!isValid) {
+      const onInvalid = this.options.invalid || defaultInvalidFile;
+      onInvalid(file);
+      return null;
+    }
+
+    this.tryToInsertPlaceholder(file);
+
+    return this.options.upload(file)
+      .then((url) => {
+        this.deleteImagePlaceholder();
+        this.insertImage(url);
+      })
+      .catch((error) => {
+        this.deleteImagePlaceholder();
+        const handleError = this.options.uploadError || defaultHandleError;
+        return handleError(error);
+      });
+  }
+
+  tryToInsertPlaceholder(file) {
+    if (this.options.imagePlaceholder === false) {
       return;
     }
 
-    const reader = new FileReader();
-    reader.addEventListener('load', () => this.insertBase64Image(reader.result), false);
-    reader.readAsDataURL(file);
-
-    return this.options.upload(file)
-      .then(url => this.insertToEditor(url))
-      .catch((error) => {
-        this.deleteImagePlaceholder()
-        return this.options.uploadError(error);
-      })
+    if (this.options.imagePlaceholder) {
+      this.insertImage(this.options.imagePlaceholder, 'imageUploadPlaceholder');
+    } else {
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        this.insertImage(reader.result, 'imageUploadPlaceholder');
+      }, false);
+      reader.readAsDataURL(file);
+    }
   }
 
   deleteImagePlaceholder() {
     this.quill.deleteText(this.range.index, 2);
   }
 
-  insertBase64Image(url) {
-    this.quill.insertEmbed(this.range.index, 'imageUpload', url);
-  }
-
-  insertToEditor(url) {
-    this.deleteImagePlaceholder();
-    this.quill.insertEmbed(this.range.index, 'image', url);
+  insertImage(url, format = 'image') {
+    this.quill.insertEmbed(this.range.index, format, url);
   }
 }
 

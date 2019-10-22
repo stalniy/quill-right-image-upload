@@ -4,51 +4,42 @@ import { ImageUploadModule } from 'quill-right-image-upload';
 
 Quill.register('modules/imageUpload', ImageUploadModule);
 
-const MOCK_IMG_SRC = 'http://tva1.sinaimg.cn/crop.0.0.217.217.180/4c8b519djw8fa45br0vpxj2062062q33.jpg';
-const quill = new Quill('#editor', {
+const MOCK_IMG_SRC = 'http://freaksidea.com/images/logo.jpg';
+const editorNode = document.createElement('div');
+
+document.body.appendChild(editorNode);
+
+new Quill(editorNode, { // eslint-disable-line
   theme: 'snow',
   modules: {
     toolbar: [
-      [{
-        'header': [1, 2, 3, 4, 5, false]
-      }, {
-        'size': ['small', false, 'large', 'huge']
-      }],
-      [{
-        'color': []
-      }, {
-        'background': []
-      }, 'bold', 'italic', 'underline', 'strike'],
+      ['bold', 'italic', 'underline', 'strike'],
       ['link', 'blockquote', 'code-block', 'image'],
-      [{
-        'align': []
-      }, {
-        'indent': '-1'
-      }, {
-        'indent': '+1'
-      }, {
-        list: 'ordered'
-      }, {
-        list: 'bullet'
-      }],
-      ['clean'] // outdent/indent
+      [{ align: [] }, { indent: '-1' }, { indent: '+1' }],
+      ['clean']
     ],
     imageUpload: {
-      upload: file => {
+      accept: ['image/jpeg', 'image/png', 'image/gif'],
+      maxSize: 100 * 1024,
+      invalid(file) {
+        alert(`${file.name} is bigger than 100kb`);
+      },
+      upload(file) { // eslint-disable-line
         // return a Promise that resolves in a link to the uploaded image
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
           setTimeout(() => {
             resolve(MOCK_IMG_SRC); // Must resolve as a link to the image
-          }, 6000);
+          }, 3000);
+          // const UPLOAD_URL = ''; // specify url here
           // const fd = new FormData();
           // fd.append("upload_file", file);
 
           // const xhr = new XMLHttpRequest();
-          // xhr.open("POST", `${window.location.pathname}/api/files/add`, true);
+          // xhr.open('POST', UPLOAD_URL, true);
           // xhr.onload = () => {
           //   if (xhr.status === 200) {
           //     const response = JSON.parse(xhr.responseText);
-          //     resolve(response.file_path); // Must resolve as a link to the image
+          //     resolve(response.imageUrl); // Must resolve as a link to the image
           //   }
           // };
           // xhr.send(fd);
@@ -56,9 +47,4 @@ const quill = new Quill('#editor', {
       }
     },
   },
-  placeholder: 'please write something...',
 });
-
-document.getElementById('output').onclick = function() {
-  console.log(quill.root.innerHTML);
-}
