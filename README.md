@@ -1,6 +1,6 @@
 # quill-right-image-upload
 
-A plugin for uploading image in Quill. Done right!
+A plugin for uploading image in [Quill](https://quilljs.com/). Done right!
 
 - upload a image when it is inserted, and then replace the base64-url with a http-url
 - preview the image which is uploading with a loading animation
@@ -43,7 +43,7 @@ const editor = new Quill('#editor', {
         data.append('file', file);
 
         return http.post('url/to/file/upload', data)
-          .then(response => resolve(response.imageUrl));
+          .then(response => response.imageUrl);
       }
     },
   },
